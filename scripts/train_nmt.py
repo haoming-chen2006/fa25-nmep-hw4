@@ -30,7 +30,7 @@ def decode(model, src_sentence, max_len=100, device="cpu"):
     tgt_tokens = [tokenizer.bos_token_id]
 
     for _ in tqdm(range(max_len)):
-        tgt_tensor = torch.tensor([tgt_tokens]).to(device)
+        tgt_tensor = torch.tensor([tgt_tokens], dtype=torch.long).to(device)
         with torch.no_grad():
             output = model(src_tensor.unsqueeze(0), tgt_tensor)
 
@@ -65,7 +65,7 @@ def train_nmt():
     dataset = FrEnDataset(data_path)
     dataloader = DataLoader(dataset, batch_size=4, shuffle=True, collate_fn=collate_fn)
 
-    device = 1
+    device = 0  # Fixed: Changed from 1 to 0 (only device 0 is available)
 
     vocab_size = len(tokenizer.vocab)
     num_layers = 6
@@ -103,8 +103,8 @@ def train_nmt():
         device=device,
     ).to(device)
 
-    # TODO: loss shouldn't include pad tokens, so it should ignore pad token ids
-    criterion = nn.CrossEntropyLoss(ignore_index=...)
+    # loss shouldn't include pad tokens, so ignore pad token ids
+    criterion = nn.CrossEntropyLoss(ignore_index=tokenizer.pad_token_id)
     optimizer = optim.AdamW(model.parameters(), lr=base_lr, betas=[0.9, 0.98], eps=1e-9)
     scheduler = LambdaLR(optimizer, lr_lambda=lr_lambda)
 
@@ -119,9 +119,8 @@ def train_nmt():
 
                 tgt_input = tgt[:, :-1]
 
-                # TODO: if the input is up to the second-last token,
-                # what should the output be?
-                tgt_output = ...
+                # tgt_input is tgt up to the second-last token, so output is shifted by one (all tokens after first)
+                tgt_output = tgt[:, 1:]
 
                 optimizer.zero_grad()
 

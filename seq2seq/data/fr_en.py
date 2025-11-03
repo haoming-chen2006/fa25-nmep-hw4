@@ -28,19 +28,20 @@ class FrEnDataset(Dataset):
         fr_tok = tokenizer.encode(fr)
         en_tok = tokenizer.encode(en)
 
+        # Ensure all tensors are long type and truncate to reasonable length
         return torch.cat(
             [
-                torch.tensor([tokenizer.bos_token_id]),
-                fr_tok,
-                torch.tensor([tokenizer.eos_token_id]),
+                torch.tensor([tokenizer.bos_token_id], dtype=torch.long),
+                fr_tok.long(),
+                torch.tensor([tokenizer.eos_token_id], dtype=torch.long),
             ]
-        ), torch.cat(
+        )[:200], torch.cat(  # Truncate to max 200 tokens
             [
-                torch.tensor([tokenizer.bos_token_id]),
-                en_tok,
-                torch.tensor([tokenizer.eos_token_id]),
+                torch.tensor([tokenizer.bos_token_id], dtype=torch.long),
+                en_tok.long(),
+                torch.tensor([tokenizer.eos_token_id], dtype=torch.long),
             ]
-        )
+        )[:200]  # Truncate to max 200 tokens
 
 
 def collate_fn(batch):
@@ -49,9 +50,9 @@ def collate_fn(batch):
 
     pad_in = pad_sequence(
         in_seq, batch_first=True, padding_value=tokenizer.pad_token_id
-    )
+    ).long()  # Ensure long type
     pad_target = pad_sequence(
         target_seq, batch_first=True, padding_value=tokenizer.pad_token_id
-    )
+    ).long()  # Ensure long type
 
     return pad_in, pad_target

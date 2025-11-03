@@ -13,7 +13,7 @@ def decode(model, src_sentence, max_len=100, device="cpu", mode="top_p"):
     tgt_tokens = [tokenizer.bos_token_id]
 
     for _ in range(max_len):
-        tgt_tensor = torch.tensor([tgt_tokens]).to(device)
+        tgt_tensor = torch.tensor([tgt_tokens], dtype=torch.long).to(device)
         with torch.no_grad():
             output = model(src_tensor.unsqueeze(0), tgt_tensor)
 
@@ -50,7 +50,7 @@ def decode(model, src_sentence, max_len=100, device="cpu", mode="top_p"):
 
 
 def main():
-    device = "cuda:3" if torch.cuda.is_available() else "cpu"
+    device = "cuda:0" if torch.cuda.is_available() else "cpu"  # Fixed: Changed from cuda:3 to cuda:0
     print(f"Using device: {device}")
 
     # Model configuration

@@ -1,4 +1,4 @@
-import wandb
+
 from tqdm import tqdm
 
 import torch
@@ -11,16 +11,7 @@ from torch.optim.lr_scheduler import LambdaLR
 from seq2seq.transformer.transformer import Decoder
 from seq2seq.data.screenplay import ScreenplayDataset, collate_fn, tokenizer
 
-run = wandb.init(
-    entity="<INSERT ENTITY HERE>",
-    project="transformer",
-    config={
-        "learning_rate": 0.00005,
-        "architecture": "transformer-lm-gpt",
-        "dataset": "screenplay",
-        "epochs": 10,
-    },
-)
+
 
 
 def decode(model, src_sentence, max_len=100, device="cpu"):
@@ -114,8 +105,8 @@ def train_lm():
         dropout=dropout,
     ).to(device)
 
-    # TODO: loss shouldn't include pad tokens, so it should ignore pad token ids
-    criterion = nn.CrossEntropyLoss(ignore_index=...)
+    # loss shouldn't include pad tokens, so ignore pad token ids
+    criterion = nn.CrossEntropyLoss(ignore_index=tokenizer.pad_token_id)
     optimizer = optim.AdamW(model.parameters(), lr=base_lr, betas=[0.9, 0.98], eps=1e-9)
     scheduler = LambdaLR(optimizer, lr_lambda=lr_lambda)
 
@@ -129,7 +120,7 @@ def train_lm():
                 paragraph = paragraph.to(device)
 
                 para_input = paragraph[:, :-1]
-                para_output = ...  # TODO: copy/modify the line from train_nmt.py
+                para_output = paragraph[:, 1:]
 
                 optimizer.zero_grad()
 
@@ -149,7 +140,6 @@ def train_lm():
 
                 total_loss += loss.item()
                 data_tqdm.set_postfix({"loss": loss})
-                run.log({"loss": loss})
             except Exception as e:
                 print(e)
 

@@ -58,7 +58,7 @@ def decode(model, start_tokens=None, max_len=1000, device="cpu", mode="top_p"):
 
 
 def main():
-    device = "cuda:3"
+    device = "cuda:0"  # Fixed: Changed from cuda:3 to cuda:0
     print(f"Using device: {device}")
 
     # Model configuration from train_lm.py
